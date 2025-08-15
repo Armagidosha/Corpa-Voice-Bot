@@ -5,7 +5,7 @@ import {
   ModalSubmitInteraction,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import type { Interaction } from 'discord.js';
+import type { Interaction, UserSelectMenuInteraction } from 'discord.js';
 import { CONFIG } from 'src/common/constants';
 import { PrivacyInteraction } from './interactions/privacy.interaction';
 import { LimitInteraction } from './interactions/limit.interaction';
@@ -13,8 +13,13 @@ import { InviteInteraction } from './interactions/invite.interaction';
 import { DeleteChannelInteraction } from './interactions/delete.interaction';
 import { RegionInteraction } from './interactions/region.interaction';
 import { ChannelRenameInteraction } from './interactions/rename.interaction';
-import { InVoiceHandler } from 'src/common/Decorators/customHandler';
+import { InVoiceHandler } from 'src/common/Decorators/inVoiceHandler';
 import { TransferInteraction } from './interactions/transfer.interaction';
+import { KickInteraction } from './interactions/kick.interaction';
+import { BlockInteraction } from './interactions/block.interaction';
+import { UnblockInteraction } from './interactions/unblock.interaction';
+import { TrustInteraction } from './interactions/trust.interaction';
+import { UntrustInteraction } from './interactions/untrust.interaction';
 
 @Injectable()
 export class RouteService {
@@ -31,6 +36,11 @@ export class RouteService {
     (i: StringSelectMenuInteraction) => Promise<void> | void
   >;
 
+  private readonly selectHandlerMap: Record<
+    string,
+    (i: UserSelectMenuInteraction) => Promise<void> | void
+  >;
+
   constructor(
     private readonly privacyI: PrivacyInteraction,
     private readonly limitI: LimitInteraction,
@@ -39,6 +49,11 @@ export class RouteService {
     private readonly regionI: RegionInteraction,
     private readonly renameI: ChannelRenameInteraction,
     private readonly transferI: TransferInteraction,
+    private readonly kickI: KickInteraction,
+    private readonly blockI: BlockInteraction,
+    private readonly unblock: UnblockInteraction,
+    private readonly trustI: TrustInteraction,
+    private readonly untrustI: UntrustInteraction,
   ) {
     this.buttonHandlerMap = {
       [CONFIG.BTN_PRIVACY]: (i) => this.privacyI.onButtonInteract(i),
@@ -47,12 +62,11 @@ export class RouteService {
       [CONFIG.BTN_REGION]: (i) => this.regionI.onButtonInteract(i),
       [CONFIG.BTN_DELETE]: (i) => this.deleteI.onButtonInteract(i),
       [CONFIG.BTN_INVITE]: (i) => this.inviteI.onButtonInteract(i),
-      // Остальные кнопки пока пустые
-      [CONFIG.BTN_KICK]: () => {},
-      [CONFIG.BTN_BLOCK]: () => {},
-      [CONFIG.BTN_UNBLOCK]: () => {},
-      [CONFIG.BTN_TRUST_ADD]: () => {},
-      [CONFIG.BTN_TRUST_REM]: () => {},
+      [CONFIG.BTN_KICK]: (i) => this.kickI.onButtonInteract(i),
+      [CONFIG.BTN_BLOCK]: (i) => this.blockI.onButtonInteract(i),
+      [CONFIG.BTN_UNBLOCK]: (i) => this.unblock.onButtonInteract(i),
+      [CONFIG.BTN_TRUST_ADD]: (i) => this.trustI.onButtonInteract(i),
+      [CONFIG.BTN_TRUST_REM]: (i) => this.untrustI.onButtonInteract(i),
       [CONFIG.BTN_TRANSFER]: (i) => this.transferI.onButtonInteract(i),
     };
 
@@ -63,11 +77,16 @@ export class RouteService {
 
     this.inputHandlerMap = {
       [CONFIG.INP_SET_REGION]: (i) => this.regionI.onInputInteract(i),
-      [CONFIG.INP_INVITE]: () => {},
-      [CONFIG.INP_KICK]: () => {},
-      [CONFIG.INP_BLOCK]: () => {},
-      [CONFIG.INP_TRUST_ADD]: () => {},
-      [CONFIG.INP_TRUST_REM]: () => {},
+      [CONFIG.INP_TRANSFER]: (i) => this.transferI.onInputInteraction(i),
+      [CONFIG.INP_INVITE]: (i) => this.inviteI.onInputInteract(i),
+      [CONFIG.INP_KICK]: (i) => this.kickI.onInputInteract(i),
+      [CONFIG.INP_UNBLOCK]: (i) => this.unblock.onInputInteract(i),
+      [CONFIG.INP_UNTRUST]: (i) => this.untrustI.onInputInteract(i),
+    };
+
+    this.selectHandlerMap = {
+      [CONFIG.INP_BLOCK]: (i) => this.blockI.onInputInteract(i),
+      [CONFIG.INP_TRUST]: (i) => this.trustI.onInputInteract(i),
     };
   }
 
@@ -84,6 +103,10 @@ export class RouteService {
 
     if (interaction.isStringSelectMenu()) {
       return this.inputHandlerMap[interaction.customId]?.(interaction);
+    }
+
+    if (interaction.isUserSelectMenu()) {
+      return this.selectHandlerMap[interaction.customId]?.(interaction);
     }
   }
 }

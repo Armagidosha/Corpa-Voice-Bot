@@ -1,30 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import {
-  ButtonInteraction,
-  GuildMember,
-  PermissionsBitField,
-} from 'discord.js';
-import { Channel } from 'src/entities/channel.entity';
-import { Repository } from 'typeorm';
+import { ButtonInteraction, PermissionsBitField } from 'discord.js';
+import { CheckRightsService } from '../checkRights.service';
+import { InteractionExtractorService } from '../interactionExtractor.service';
+import { MESSAGES } from 'src/common/constants';
 
 @Injectable()
 export class PrivacyInteraction {
   constructor(
-    @InjectRepository(Channel)
-    private readonly channelRepository: Repository<Channel>,
+    private readonly checkRights: CheckRightsService,
+    private readonly interactionExtractor: InteractionExtractorService,
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-    const everyone = interaction.guild.roles.everyone;
-    const channel = (interaction.member as GuildMember).voice.channel;
-    //TODO: Требуется интеграция с БД для проверки на владельца канала
-    const channelData = await this.channelRepository.findOne({
-      where: { channelId: channel.id },
-    });
 
-    const currentPerms = channel.permissionsFor(everyone);
+    const { isOwner, isTrusted } = await this.checkRights.check(interaction);
+
+    if (!isOwner && !isTrusted) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
+    const { voiceChannel, guild } =
+      await this.interactionExtractor.extract(interaction);
+
+    const everyone = guild.roles.everyone;
+    const currentPerms = voiceChannel.permissionsFor(everyone);
 
     const isPrivate = currentPerms
       ? !currentPerms.has(PermissionsBitField.Flags.Connect)
@@ -32,17 +33,12 @@ export class PrivacyInteraction {
 
     const newPrivacy = isPrivate ? 'public' : 'private';
 
-    await channel.permissionOverwrites.edit(everyone, {
+    await voiceChannel.permissionOverwrites.edit(everyone, {
       Connect: isPrivate,
     });
 
-    const newState = this.channelRepository.create({
-      ...channelData,
-      privacy: newPrivacy,
-    });
-    await interaction.editReply({
-      content: `Канал теперь ${newPrivacy === 'public' ? '**публичный**' : '**приватный**'}.`,
-    });
-    await this.channelRepository.save(newState);
+    await interaction.editReply(
+      `Канал теперь ${newPrivacy === 'public' ? '**публичный**' : '**приватный**'}.`,
+    );
   }
 }

@@ -11,7 +11,6 @@ import { sendEmbedInterface } from 'src/common/embed';
 export class InterfaceCommand {
   @Handler()
   async onInteract(interaction: ChatInputCommandInteraction) {
-    //TODO: Требуется интеграция с БД для проверки на владельца канала
     await interaction.deferReply({ flags: 'Ephemeral' });
     const guild = interaction.guild;
 

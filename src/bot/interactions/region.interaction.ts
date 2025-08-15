@@ -5,36 +5,13 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { CONFIG } from 'src/common/constants';
+import { CONFIG, MESSAGES, regionConfig } from 'src/common/constants';
 
 const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
   new StringSelectMenuBuilder()
     .setCustomId(CONFIG.INP_SET_REGION)
-    .setPlaceholder('Выбери уже что-нибудь')
-    .addOptions([
-      {
-        label: 'Передать штурвал судьбе',
-        description: 'Автоматический выбор региона с низкой задержкой.',
-        value: 'auto',
-      },
-      {
-        label: 'Вротдам',
-        description: 'Нидерланды, Роттердам. Наиболее оптимальный регион.',
-        value: 'rotterdam',
-      },
-      {
-        label: 'О, привет, Болливуд!',
-        description:
-          'Индийский регион, где пинг танцует ламбаду, а задержка приходит с приправой карри и щепоткой хаоса.',
-        value: 'india',
-      },
-      {
-        label: 'Восточная Америка',
-        description:
-          'Поздравляю, вы иностранный агент, живете на 10 секунд позже, зато в Америке.',
-        value: 'us-west',
-      },
-    ]),
+    .setPlaceholder(MESSAGES.MAKE_A_CHOICE)
+    .addOptions(regionConfig),
 );
 
 @Injectable()
@@ -53,13 +30,13 @@ export class RegionInteraction {
     const value = interaction.values[0];
 
     if (!value) {
-      await interaction.editReply({ content: 'Нужно что-то выбрать.' });
+      await interaction.editReply(MESSAGES.IMPORTANT_CHOICE);
     }
 
     const member = interaction.guild?.members.cache.get(interaction.user.id);
     const channel = member?.voice.channel;
 
     await channel.edit({ rtcRegion: value === 'auto' ? null : value });
-    await interaction.editReply({ content: 'Регион успешно изменен.' });
+    await interaction.editReply(`Регион успешно изменен (${value})`);
   }
 }

@@ -10,7 +10,9 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     return {
       type: 'better-sqlite3',
       database: resolve(__dirname, '..', '..', 'data', 'db.sqlite'),
-      entities: [resolve(__dirname, '..', 'entities', '*.entity.{ts,js}')],
+      entities: [
+        resolve(__dirname, '..', 'bot', 'entities', '*.entity.{ts,js}'),
+      ],
       synchronize:
         this.configService.get<string>('mode') === 'development' ? true : false,
     };

@@ -27,6 +27,8 @@ export function InVoiceHandler<
     ): Promise<ReturnType<T> | void> {
       const interaction = args[0];
 
+      if (interaction.isCommand()) return;
+
       const member = interaction.guild?.members.cache.get(interaction.user.id);
       const channel = member?.voice.channel;
 

@@ -2,19 +2,23 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
-  PermissionsBitField,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
+import { CONFIG, MESSAGES } from 'src/common/constants';
 import { CheckRightsService } from '../checkRights.service';
 import { InteractionExtractorService } from '../interactionExtractor.service';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Channel } from '../entities/channel.entity';
 
 @Injectable()
-export class InviteInteraction {
+export class KickInteraction {
   constructor(
     private readonly checkRightsService: CheckRightsService,
     private readonly interactionExtractor: InteractionExtractorService,
+    @InjectRepository(Channel)
+    private readonly channelRepository: Repository<Channel>,
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
@@ -28,33 +32,23 @@ export class InviteInteraction {
       return;
     }
 
-    const { voiceChannel, userId, guild, guildMembers } =
+    const { voiceChannel, userId } =
       await this.interactionExtractor.extract(interaction);
 
-    const everyone = guild.roles.everyone;
-
-    const selectOptions = guildMembers
+    const selectOptions = voiceChannel.members
       .filter((memb) => !memb.user.bot)
       .filter((memb) => memb.id !== userId)
       .map((memb) => ({ label: memb.displayName, value: memb.id }));
 
     if (!selectOptions.length) {
-      await interaction.editReply(MESSAGES.SERVER_ALONE);
-    }
-
-    if (
-      voiceChannel
-        .permissionsFor(everyone)
-        .has(PermissionsBitField.Flags.Connect)
-    ) {
-      await interaction.editReply(MESSAGES.CHANNEL_SHOULD_BE_PRIVATE);
+      await interaction.editReply(MESSAGES.VOICE_ALONE);
       return;
     }
 
     const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
-        .setCustomId(CONFIG.INP_INVITE)
-        .setPlaceholder(INP_CONTENT.invite_select)
+        .setCustomId(CONFIG.INP_KICK)
+        .setPlaceholder('Выбери, кого хочешь кикнуть')
         .addOptions(selectOptions),
     );
 
@@ -67,25 +61,37 @@ export class InviteInteraction {
   async onInputInteract(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
-    const { voiceChannel, userId, guild, values } =
+    const { guild, voiceChannel, values } =
       await this.interactionExtractor.extract(interaction);
 
+    const members = guild.members;
+
     const selectedUserId = values[0];
-    const invitedUser = await guild.members.fetch(selectedUserId);
+    const kickedUser = await members.fetch(selectedUserId);
 
-    let reply = `<@${invitedUser.id}> теперь может посещать твой канал.`;
-
-    await voiceChannel.permissionOverwrites.edit(invitedUser, {
-      Connect: true,
+    const channel = await this.channelRepository.findOne({
+      where: { channelId: voiceChannel.id },
     });
 
+    if (channel.ownerId === selectedUserId) {
+      await interaction.editReply(MESSAGES.CANT_KICK_OWNER);
+      return;
+    }
+
+    if (voiceChannel.members.has(kickedUser.id)) {
+      await kickedUser.voice.disconnect();
+    }
+
+    let reply = `<@${kickedUser.id}> кикнут из канала.`;
+
     try {
-      await invitedUser.send(
-        `<@${userId}> пригласили тебя в голосовой канал <#${voiceChannel.id}>.`,
+      await kickedUser.send(
+        `Ты был кикнут из голосового канала <#${voiceChannel.id}> пользователем <@${interaction.user.id}>.`,
       );
     } catch {
-      reply += 'Но он не получил приглашение в личных сообщениях.';
+      reply += ' Но он не получил уведомление в ЛС.';
     }
+
     await interaction.editReply(reply);
   }
 }

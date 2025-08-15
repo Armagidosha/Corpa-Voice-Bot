@@ -8,8 +8,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { CONFIG } from 'src/common/constants';
-import { Channel } from 'src/entities/channel.entity';
+import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
+import { Channel } from 'src/bot/entities/channel.entity';
 import { Repository } from 'typeorm';
 
 const channelCooldown = new Map<string, NodeJS.Timeout>();
@@ -17,14 +17,14 @@ const channelCooldown = new Map<string, NodeJS.Timeout>();
 const input = new ActionRowBuilder<TextInputBuilder>().addComponents(
   new TextInputBuilder({
     customId: CONFIG.INP_RENAME,
-    label: 'Новое название',
+    label: INP_CONTENT.rename_input,
     style: TextInputStyle.Short,
   }),
 );
 
 const modal = new ModalBuilder({
   customId: CONFIG.MODAL_RENAME,
-  title: 'Переименовать канал',
+  title: MESSAGES.IMPORTANT_CHOICE,
   components: [input],
 });
 
@@ -36,14 +36,12 @@ export class ChannelRenameInteraction {
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
+    await interaction.deferReply({ flags: 'Ephemeral' });
     const member = interaction.guild?.members.cache.get(interaction.user.id);
     const channel = member?.voice.channel;
 
     if (channelCooldown.has(channel.id)) {
-      await interaction.reply({
-        content: 'Этот канал можно переименовывать не чаще, чем раз в 5 минут.',
-        flags: 'Ephemeral',
-      });
+      await interaction.editReply(MESSAGES.RENAME_COOLDOWN);
       return;
     }
 
@@ -64,9 +62,7 @@ export class ChannelRenameInteraction {
     );
 
     if (!newName || newName.length > 100) {
-      await interaction.editReply({
-        content: 'Название канала должно быть от 1 до 100 символов.',
-      });
+      await interaction.editReply(MESSAGES.INVALID_CHANNEL_NAME);
       return;
     }
 
@@ -74,19 +70,17 @@ export class ChannelRenameInteraction {
       where: { channelId: channel.id },
     });
     if (!channelData) {
-      await interaction.editReply({
-        content: 'Данные не найдены в БД, пересоздайте канал.',
-      });
+      await interaction.editReply(MESSAGES.NO_DATA);
       return;
     }
 
     channelCooldown.set(channel.id, timeout);
 
-    const updatedName = `${newName} [#${channelData.channelIndex}]`;
+    const updatedName = `${newName} [#${channelData.index}]`;
     await channel.edit({ name: updatedName });
 
-    await interaction.editReply({
-      content: `Голосовой канал успешно переименован в **"${newName}"**.`,
-    });
+    await interaction.editReply(
+      `Голосовой канал успешно переименован в **"${newName}"**.`,
+    );
   }
 }

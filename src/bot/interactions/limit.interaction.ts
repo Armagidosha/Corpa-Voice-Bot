@@ -7,51 +7,61 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { CONFIG } from 'src/common/constants';
+import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
+import { CheckRightsService } from '../checkRights.service';
+import { InteractionExtractorService } from '../interactionExtractor.service';
 
 const input = new ActionRowBuilder<TextInputBuilder>().addComponents(
   new TextInputBuilder({
     customId: CONFIG.INP_SET_LIMIT,
-    label: 'Новое название',
+    label: INP_CONTENT.limit_input,
     style: TextInputStyle.Short,
   }),
 );
 
 const modal = new ModalBuilder({
   customId: CONFIG.MODAL_SET_LIMIT,
-  title: 'Переименовать канал',
+  title: MESSAGES.IMPORTANT_CHOICE,
   components: [input],
 });
 
 @Injectable()
 export class LimitInteraction {
+  constructor(
+    private readonly checkRightsService: CheckRightsService,
+    private readonly interactionExtractor: InteractionExtractorService,
+  ) {}
   async onButtonInteract(interaction: ButtonInteraction) {
-    //TODO: Требуется интеграция с БД для проверки на владельца канала
+    const { isOwner, isTrusted } =
+      await this.checkRightsService.check(interaction);
+
+    if (!isOwner && !isTrusted) {
+      await interaction.reply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
     await interaction.showModal(modal);
   }
 
   async onModalInteract(interaction: ModalSubmitInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-    const newLimitRaw = interaction.fields.getTextInputValue(
-      CONFIG.INP_SET_LIMIT,
-    );
-    const newLimit = parseInt(newLimitRaw, 10);
+    const { fields, voiceChannel } =
+      await this.interactionExtractor.extract(interaction);
 
-    const member = interaction.guild?.members.cache.get(interaction.user.id);
-    const channel = member?.voice.channel;
+    const newLimit = parseInt(fields[0], 10);
+
+    console.log(isNaN(newLimit) || newLimit < 0 || newLimit > 99);
 
     if (isNaN(newLimit) || newLimit < 0 || newLimit > 99) {
-      await interaction.editReply({
-        content: 'Лимит должен быть от 0 до 99 (0 - убрать лимит).',
-      });
+      await interaction.editReply(MESSAGES.INVALID_CHANNEL_LIMIT);
       return;
     }
 
-    await channel.edit({ userLimit: newLimit });
-    await interaction.editReply({
-      content: newLimit
+    await voiceChannel.edit({ userLimit: newLimit });
+    await interaction.editReply(
+      newLimit
         ? `Лимит канала установлен на **${newLimit}**.`
         : 'Лимит канала **убран**.',
-    });
+    );
   }
 }

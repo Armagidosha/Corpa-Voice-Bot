@@ -2,59 +2,57 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
-  PermissionsBitField,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { CheckRightsService } from '../checkRights.service';
+import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { InteractionExtractorService } from '../interactionExtractor.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { BlockedUser } from '../entities/blockedUser.entity';
 
 @Injectable()
-export class InviteInteraction {
+export class UnblockInteraction {
   constructor(
     private readonly checkRightsService: CheckRightsService,
     private readonly interactionExtractor: InteractionExtractorService,
+    @InjectRepository(BlockedUser)
+    private readonly blockedRepository: Repository<BlockedUser>,
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
-    const { isOwner, isTrusted } =
-      await this.checkRightsService.check(interaction);
+    const { isOwner } = await this.checkRightsService.check(interaction);
 
-    if (!isOwner && !isTrusted) {
+    if (!isOwner) {
       await interaction.editReply(MESSAGES.NO_RIGHTS);
       return;
     }
 
-    const { voiceChannel, userId, guild, guildMembers } =
+    const { userId, guildMembers } =
       await this.interactionExtractor.extract(interaction);
 
-    const everyone = guild.roles.everyone;
+    const blockedUsers = await this.blockedRepository.find({
+      where: { ownerId: userId },
+    });
+
+    const blockedIds = blockedUsers.map((user) => user.blockedId);
 
     const selectOptions = guildMembers
-      .filter((memb) => !memb.user.bot)
-      .filter((memb) => memb.id !== userId)
+      .filter((memb) => blockedIds.includes(memb.user.id))
       .map((memb) => ({ label: memb.displayName, value: memb.id }));
 
     if (!selectOptions.length) {
-      await interaction.editReply(MESSAGES.SERVER_ALONE);
-    }
-
-    if (
-      voiceChannel
-        .permissionsFor(everyone)
-        .has(PermissionsBitField.Flags.Connect)
-    ) {
-      await interaction.editReply(MESSAGES.CHANNEL_SHOULD_BE_PRIVATE);
+      await interaction.editReply(MESSAGES.BAN_LIST_EMPTY);
       return;
     }
 
     const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
-        .setCustomId(CONFIG.INP_INVITE)
-        .setPlaceholder(INP_CONTENT.invite_select)
+        .setCustomId(CONFIG.INP_UNBLOCK)
+        .setPlaceholder(INP_CONTENT.unblock_select)
         .addOptions(selectOptions),
     );
 
@@ -66,26 +64,24 @@ export class InviteInteraction {
 
   async onInputInteract(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-
-    const { voiceChannel, userId, guild, values } =
+    const { values, voiceChannel, guild } =
       await this.interactionExtractor.extract(interaction);
 
     const selectedUserId = values[0];
-    const invitedUser = await guild.members.fetch(selectedUserId);
 
-    let reply = `<@${invitedUser.id}> теперь может посещать твой канал.`;
-
-    await voiceChannel.permissionOverwrites.edit(invitedUser, {
-      Connect: true,
+    const blockedUserData = await this.blockedRepository.findOne({
+      where: { blockedId: selectedUserId },
     });
 
-    try {
-      await invitedUser.send(
-        `<@${userId}> пригласили тебя в голосовой канал <#${voiceChannel.id}>.`,
-      );
-    } catch {
-      reply += 'Но он не получил приглашение в личных сообщениях.';
+    if (!blockedUserData) {
+      await interaction.editReply(MESSAGES.BLOCKED_USER_NOT_FOUND);
+      return;
     }
-    await interaction.editReply(reply);
+
+    const blockedUser = await guild.members.fetch(selectedUserId);
+
+    await this.blockedRepository.remove(blockedUserData);
+    await voiceChannel.permissionOverwrites.delete(blockedUser);
+    await interaction.editReply(`<@${selectedUserId}> разблокирован!`);
   }
 }
