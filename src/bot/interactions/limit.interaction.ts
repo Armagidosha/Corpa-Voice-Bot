@@ -32,11 +32,12 @@ export class LimitInteraction {
     private readonly interactionExtractor: InteractionExtractorService,
   ) {}
   async onButtonInteract(interaction: ButtonInteraction) {
+    await interaction.deferReply({ flags: 'Ephemeral' });
     const { isOwner, isTrusted } =
       await this.checkRightsService.check(interaction);
 
     if (!isOwner && !isTrusted) {
-      await interaction.reply(MESSAGES.NO_RIGHTS);
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
       return;
     }
 
