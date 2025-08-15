@@ -36,12 +36,14 @@ export class ChannelRenameInteraction {
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
-    await interaction.deferReply({ flags: 'Ephemeral' });
     const member = interaction.guild?.members.cache.get(interaction.user.id);
     const channel = member?.voice.channel;
 
     if (channelCooldown.has(channel.id)) {
-      await interaction.editReply(MESSAGES.RENAME_COOLDOWN);
+      await interaction.reply({
+        content: MESSAGES.RENAME_COOLDOWN,
+        flags: 'Ephemeral',
+      });
       return;
     }
 
