@@ -7,19 +7,19 @@ import {
 } from 'discord.js';
 import type { Interaction, UserSelectMenuInteraction } from 'discord.js';
 import { CONFIG } from 'src/common/constants';
-import { PrivacyInteraction } from './interactions/privacy.interaction';
-import { LimitInteraction } from './interactions/limit.interaction';
-import { InviteInteraction } from './interactions/invite.interaction';
-import { DeleteChannelInteraction } from './interactions/delete.interaction';
-import { RegionInteraction } from './interactions/region.interaction';
-import { ChannelRenameInteraction } from './interactions/rename.interaction';
+import { PrivacyInteraction } from '../interactions/privacy.interaction';
+import { LimitInteraction } from '../interactions/limit.interaction';
+import { InviteInteraction } from '../interactions/invite.interaction';
+import { DeleteChannelInteraction } from '../interactions/delete.interaction';
+import { RegionInteraction } from '../interactions/region.interaction';
+import { ChannelRenameInteraction } from '../interactions/rename.interaction';
 import { InVoiceHandler } from 'src/common/Decorators/inVoiceHandler';
-import { TransferInteraction } from './interactions/transfer.interaction';
-import { KickInteraction } from './interactions/kick.interaction';
-import { BlockInteraction } from './interactions/block.interaction';
-import { UnblockInteraction } from './interactions/unblock.interaction';
-import { TrustInteraction } from './interactions/trust.interaction';
-import { UntrustInteraction } from './interactions/untrust.interaction';
+import { TransferInteraction } from '../interactions/transfer.interaction';
+import { KickInteraction } from '../interactions/kick.interaction';
+import { BlockInteraction } from '../interactions/block.interaction';
+import { UnblockInteraction } from '../interactions/unblock.interaction';
+import { TrustInteraction } from '../interactions/trust.interaction';
+import { UntrustInteraction } from '../interactions/untrust.interaction';
 
 @Injectable()
 export class RouteService {
@@ -78,13 +78,13 @@ export class RouteService {
     this.inputHandlerMap = {
       [CONFIG.INP_SET_REGION]: (i) => this.regionI.onInputInteract(i),
       [CONFIG.INP_TRANSFER]: (i) => this.transferI.onInputInteraction(i),
-      [CONFIG.INP_INVITE]: (i) => this.inviteI.onInputInteract(i),
       [CONFIG.INP_KICK]: (i) => this.kickI.onInputInteract(i),
       [CONFIG.INP_UNBLOCK]: (i) => this.unblock.onInputInteract(i),
       [CONFIG.INP_UNTRUST]: (i) => this.untrustI.onInputInteract(i),
     };
 
     this.selectHandlerMap = {
+      [CONFIG.INP_INVITE]: (i) => this.inviteI.onInputInteract(i),
       [CONFIG.INP_BLOCK]: (i) => this.blockI.onInputInteract(i),
       [CONFIG.INP_TRUST]: (i) => this.trustI.onInputInteract(i),
     };
