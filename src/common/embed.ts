@@ -10,9 +10,9 @@ import { makeRow } from './utils';
 const embed = new EmbedBuilder()
   .setTitle('Настройка временного канала')
   .setColor(0xffb900)
-  .setDescription('Используйте кнопки ниже чтобы управлять голосовым каналом.')
+  .setDescription('Используйте кнопки ниже, чтобы управлять голосовым каналом.')
   .setImage(
-    'https://cdn.discordapp.com/attachments/1148739831594242211/1381962774590132234/NEUKRAL2004.png?ex=68569ba1&is=68554a21&hm=c258a72a5a3406357054ede7d23ad573639576ea9a00338a745bbd869d947073&',
+    'https://cdn.discordapp.com/attachments/1148739831594242211/1406310818093731880/-1.png?ex=68a20083&is=68a0af03&hm=c5a9163e73005ce3c1e58bbe0295622b97ffb235561ab63f79aef172c0c9cb43&',
   );
 
 const rows = [
@@ -25,8 +25,8 @@ const rows = [
   makeRow([
     [CONFIG.BTN_INVITE, ICONS.INVITE, ButtonStyle.Secondary],
     [CONFIG.BTN_KICK, ICONS.KICK, ButtonStyle.Secondary],
-    [CONFIG.BTN_BLOCK, ICONS.BLOCK, ButtonStyle.Secondary],
     [CONFIG.BTN_UNBLOCK, ICONS.UNBLOCK, ButtonStyle.Secondary],
+    [CONFIG.BTN_BLOCK, ICONS.BLOCK, ButtonStyle.Secondary],
   ]),
   makeRow([
     [CONFIG.BTN_TRUST_ADD, ICONS.TRUSTED_ADD, ButtonStyle.Secondary],
