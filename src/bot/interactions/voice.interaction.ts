@@ -1,16 +1,16 @@
 import { On } from '@discord-nestjs/core';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
+  type VoiceBasedChannel,
   CategoryChannel,
   ChannelType,
   GuildMember,
-  VoiceBasedChannel,
   VoiceState,
 } from 'discord.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { GUILD } from 'src/common/constants';
 import { Channel } from 'src/bot/entities/channel.entity';
-import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class VoiceInteraction {
   ) {
     let user = await this.userRepository.findOne({
       where: { userId: member.id },
-      relations: ['blockedUsers', 'trustedUsers'],
+      relations: { blockedUsers: true, trustedUsers: true },
     });
     if (!user) {
       user = await this.userRepository.save({ userId: member.id });
@@ -83,6 +83,16 @@ export class VoiceInteraction {
 
     try {
       await member.voice.setChannel(createdChannel);
+      const existingChannel = await this.channelRepository.findOne({
+        where: { ownerId: user.userId },
+      });
+
+      if (existingChannel) {
+        await this.channelRepository.update(existingChannel, {
+          owner: null,
+        });
+      }
+
       await this.channelRepository.save({
         channelId: createdChannel.id,
         owner: user,
@@ -90,6 +100,7 @@ export class VoiceInteraction {
         name,
       });
     } catch {
+      console.log('Ты уже владелец какого-то канала');
       await createdChannel.delete().catch(() => {});
     }
   }
@@ -114,6 +125,12 @@ export class VoiceInteraction {
     }
   }
 
+  @On('channelDelete')
+  async handleChannelDelete(channel: VoiceBasedChannel) {
+    if (channel.parent?.name !== GUILD.CHS_CATEGORY_NAME) return;
+    await this.channelRepository.delete({ channelId: channel.id });
+  }
+
   @On('voiceStateUpdate')
   async handleLeave(oldState: VoiceState, newState: VoiceState) {
     if (!oldState.channel) return;
@@ -130,15 +147,16 @@ export class VoiceInteraction {
       relations: { owner: true },
     });
 
-    if (!channel) return;
-
     if (oldChannel.members.size === 0) {
-      await this.channelRepository.remove(channel);
       await oldChannel.delete().catch(() => {});
       return;
     }
 
-    if (channel.owner && oldState.member?.id === channel.owner.userId) {
+    if (
+      channel &&
+      channel.owner &&
+      oldState.member?.id === channel.owner.userId
+    ) {
       await this.channelRepository.update(
         { channelId: oldChannel.id },
         { owner: null, ownerId: null },
