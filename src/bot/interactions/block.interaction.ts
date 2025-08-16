@@ -5,12 +5,12 @@ import {
   UserSelectMenuBuilder,
   UserSelectMenuInteraction,
 } from 'discord.js';
-import { CheckRightsService } from '../checkRights.service';
-import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BlockedUser } from '../entities/blockedUser.entity';
 import { Repository } from 'typeorm';
-import { InteractionExtractorService } from '../interactionExtractor.service';
+import { CheckRightsService } from '../extra/checkRights.service';
+import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
+import { BlockedUser } from '../entities/blockedUser.entity';
+import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { TrustedUser } from '../entities/trustedUser.entity';
 
 @Injectable()
