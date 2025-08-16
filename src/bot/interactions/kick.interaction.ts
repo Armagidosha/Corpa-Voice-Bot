@@ -5,11 +5,11 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { CONFIG, MESSAGES } from 'src/common/constants';
-import { CheckRightsService } from '../checkRights.service';
-import { InteractionExtractorService } from '../interactionExtractor.service';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CONFIG, MESSAGES } from 'src/common/constants';
+import { CheckRightsService } from '../extra/checkRights.service';
+import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { Channel } from '../entities/channel.entity';
 
 @Injectable()

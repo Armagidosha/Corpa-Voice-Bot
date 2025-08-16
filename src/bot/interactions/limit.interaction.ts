@@ -8,8 +8,8 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
-import { CheckRightsService } from '../checkRights.service';
-import { InteractionExtractorService } from '../interactionExtractor.service';
+import { CheckRightsService } from '../extra/checkRights.service';
+import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 
 const input = new ActionRowBuilder<TextInputBuilder>().addComponents(
   new TextInputBuilder({

@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   ActionRowBuilder,
   ButtonInteraction,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { CheckRightsService } from '../checkRights.service';
-import { InteractionExtractorService } from '../interactionExtractor.service';
-import { TrustedUser } from '../entities/trustedUser.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CheckRightsService } from '../extra/checkRights.service';
+import { InteractionExtractorService } from '../extra/interactionExtractor.service';
+import { TrustedUser } from '../entities/trustedUser.entity';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 
 @Injectable()

@@ -8,9 +8,9 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
+import { Repository } from 'typeorm';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { Channel } from 'src/bot/entities/channel.entity';
-import { Repository } from 'typeorm';
 
 const channelCooldown = new Map<string, NodeJS.Timeout>();
 

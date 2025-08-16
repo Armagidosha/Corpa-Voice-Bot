@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ButtonInteraction } from 'discord.js';
-import { CheckRightsService } from '../checkRights.service';
+import { CheckRightsService } from '../extra/checkRights.service';
 import { MESSAGES } from 'src/common/constants';
 
 @Injectable()

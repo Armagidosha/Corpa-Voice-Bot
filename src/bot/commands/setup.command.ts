@@ -16,7 +16,6 @@ import { sendEmbedInterface } from 'src/common/embed';
 export class SetupCommand {
   @Handler()
   async OnInteract(interaction: ChatInputCommandInteraction) {
-    //TODO: Требуется интеграция с БД для проверки на владельца канала
     await interaction.deferReply({
       flags: 'Ephemeral',
     });

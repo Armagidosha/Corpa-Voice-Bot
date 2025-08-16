@@ -6,11 +6,11 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
+import { Repository } from 'typeorm';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { Channel } from 'src/bot/entities/channel.entity';
-import { Repository } from 'typeorm';
-import { CheckRightsService } from '../checkRights.service';
-import { InteractionExtractorService } from '../interactionExtractor.service';
+import { CheckRightsService } from '../extra/checkRights.service';
+import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 
 @Injectable()
 export class TransferInteraction {
