@@ -57,7 +57,7 @@ export class InviteInteraction {
   async onInputInteract(interaction: UserSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
-    const { voiceChannel, user, userId, guild, values, guildMembers } =
+    const { voiceChannel, user, userId, guild, values } =
       await this.interactionExtractor.extract(interaction);
 
     const selectedUserId = values[0];
@@ -69,12 +69,9 @@ export class InviteInteraction {
       return;
     }
 
-    const membersId = voiceChannel.members.map((user) => user.id);
-    const filterInChannel = guildMembers.filter((memb) =>
-      membersId.includes(memb.id),
-    );
+    const invitedUserChannel = invitedUser.voice.channel;
 
-    if (filterInChannel.has(userId)) {
+    if (invitedUserChannel && invitedUserChannel.id !== voiceChannel.id) {
       await interaction.editReply(MESSAGES.CANT_INVITE_USER_IN_CHANNEL);
       return;
     }
