@@ -71,7 +71,7 @@ export class InviteInteraction {
 
     const invitedUserChannel = invitedUser.voice.channel;
 
-    if (invitedUserChannel && invitedUserChannel.id !== voiceChannel.id) {
+    if (invitedUserChannel && invitedUserChannel.id === voiceChannel.id) {
       await interaction.editReply(MESSAGES.CANT_INVITE_USER_IN_CHANNEL);
       return;
     }
