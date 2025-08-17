@@ -31,17 +31,17 @@ Allows to generate and interact voice channels
 ```bash
 $ npm install -g yarn
 ```
+
 ```
 $ yarn install
 ```
 
-
 ```.env
- DS_TOKEN=//! Токен_для_доступа_к_API
- GUILD_ID=//! ID_гильдии_для_регистрации_команд
- PORT=//? Порт_на_котором_запускается_сервер default: 5050
- MODE=//? Режим_работы_бота default: 'development' allowed: 'development', 'production'
+ DS_TOKEN=//!
+ GUILD_ID=//!
+ PORT=//? default: 5050
 ```
+
 ```bash
 # development
 $ yarn start

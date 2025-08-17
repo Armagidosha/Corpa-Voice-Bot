@@ -13,8 +13,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       entities: [
         resolve(__dirname, '..', 'bot', 'entities', '*.entity.{ts,js}'),
       ],
-      synchronize:
-        this.configService.get<string>('mode') === 'development' ? true : false,
+      synchronize: true,
     };
   }
 }
