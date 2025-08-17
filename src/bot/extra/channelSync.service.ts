@@ -1,10 +1,10 @@
 import { InjectDiscordClient } from '@discord-nestjs/core';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Channel } from '../entities/channel.entity';
-import { ChannelType, Client } from 'discord.js';
+import { ChannelType, Client, GuildBasedChannel } from 'discord.js';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { Channel } from '../entities/channel.entity';
 
 @Injectable()
 export class ChannelSyncService {
@@ -26,7 +26,14 @@ export class ChannelSyncService {
     const channels = await this.channelRepository.find();
 
     for (const ch of channels) {
-      const discordChannel = await guild.channels.fetch(ch.channelId);
+      let discordChannel: GuildBasedChannel | null = null;
+
+      try {
+        discordChannel = await guild.channels.fetch(ch.channelId);
+      } catch {
+        await this.channelRepository.delete({ channelId: ch.channelId });
+        continue;
+      }
 
       if (!discordChannel) {
         await this.channelRepository.delete({ channelId: ch.channelId });
