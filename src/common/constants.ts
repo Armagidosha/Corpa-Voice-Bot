@@ -11,6 +11,7 @@ export const ICONS = {
   TRUSTED_ADD: { name: 'trust', id: '1406309451526438922' },
   TRUSTED_REMOVE: { name: 'untrust', id: '1406309478235770980' },
   TRANSFER: { name: 'transfer', id: '1406309356365942784' },
+  CLAIM: { name: 'claim', id: '1407023438987661544' },
 } as const;
 
 export const GUILD = {
@@ -20,42 +21,41 @@ export const GUILD = {
 };
 
 export const MESSAGES = {
-  ALREADY_BANNED: 'Пользователь уже находится в списке заблокированных',
-  ALREADY_TRUSTED: 'Пользователь уже находится в числе модераторов',
-  BAN_LIST_EMPTY: 'Твой список заблокированных пуст',
-  BLOCKED_USER_NOT_FOUND: 'Пользователь не найден в списке заблокированных',
+  ALREADY_BANNED: 'Пользователь уже в бане',
+  ALREADY_TRUSTED: 'Пользователь уже модератор',
+  BAN_LIST_EMPTY: 'Список заблокированных пуст',
+  BLOCKED_USER_NOT_FOUND: 'Пользователь не найден в бан-листе',
   CHANNEL_SHOULD_BE_PRIVATE: 'Канал должен быть приватным',
-  CANT_KICK_OWNER: 'Ты не можешь выгнать владельца канала',
-  CANT_INVITE_USER_IN_CHANNEL: 'Ты не можешь приглашать того, кто уже в канале',
-  IMPORTANT_CHOICE: 'Очень важный выбор!',
-  INVALID_CHANNEL_LIMIT: 'Лимит канала должен быть от 0 до 99 (0 - без лимита)',
+  CANT_KICK_OWNER: 'Нельзя кикнуть владельца канала',
+  CANT_INVITE_USER_IN_CHANNEL: 'Пользователь уже в канале',
+  IMPORTANT_CHOICE: 'Важный выбор!',
+  INVALID_CHANNEL_LIMIT: 'Лимит канала — от 0 до 99 (0 = без лимита)',
   INVALID_CHANNEL_NAME: 'Название канала должно быть от 1 до 100 символов',
-  MAKE_A_CHOICE: 'Выбери уже что-нибудь!',
-  NO_DATA: 'Данные не найдены в БД, пересоздайте канал',
-  NO_RIGHTS: 'У тебя нет прав на это действие',
-  RENAME_COOLDOWN:
-    'Этот канал можно переименовывать не чаще, чем раз в 5 минут',
-  SELF_OR_BOT_SELECTED: 'Ты не можешь выбрать себя или бота',
-  SERVER_ALONE: 'Ты один на сервере. Только ты и железяки',
-  VOICE_ALONE: 'В канале больше никого нет, кроме тебя',
+  MAKE_A_CHOICE: 'Сделай выбор',
+  NO_DATA: 'Нет данных. Попробуй пересоздать канал',
+  NO_RIGHTS: 'У тебя нет прав для этого',
+  RENAME_COOLDOWN: 'Канал можно переименовывать раз в 5 минут',
+  SELF_OR_BOT_SELECTED: 'Нельзя выбрать себя или бота',
+  SERVER_ALONE: 'Ты один на сервере. Только ты и боты',
+  VOICE_ALONE: 'В голосовом канале никого нет кроме тебя',
   TRUSTED_USER_NOT_FOUND: 'Модератор не найден',
-  TRUST_LIST_EMPTY: 'Твой список модераторов пуст',
-  USER_IS_BLOCKED:
-    'Пользователь находится в списке заблокированных, его нельзя назначить модератором',
-  USER_IS_TRUSTED:
-    'Пользователь находится в списке модераторов, его нельзя заблокировать',
+  TRUST_LIST_EMPTY: 'Список модераторов пуст',
+  USER_IS_BLOCKED: 'Пользователь в бане — модером его не сделать',
+  USER_IS_TRUSTED: 'Пользователь уже модератор — забанить нельзя',
+  OWNER_EXISTS: 'У канала уже есть владелец',
+  OWNER_CLAIM: 'Ты стал владельцем канала',
 };
 
 export const INP_CONTENT = {
-  invite_select: 'Кого хочешь пригласить',
-  kick_select: 'Кого хочешь кикнуть',
-  limit_input: 'Установи лимит от 0 до 99 (0 = убрать лимит)',
-  rename_input: 'Новое название канала',
-  transfer_select: 'Кому передать владение каналом',
-  block_select: 'Кого заблокировать',
-  unblock_select: 'Кого разблокировать',
-  trust_add_select: 'Кому дать права модератора',
-  trust_del_select: 'У кого забрать права модератора',
+  invite_select: 'Выбери, кого пригласить',
+  kick_select: 'Выбери, кого кикнуть',
+  limit_input: 'Задай лимит от 0 до 99 (0 = без лимита)',
+  rename_input: 'Введи новое название канала',
+  transfer_select: 'Выбери, кому передать владение',
+  block_select: 'Выбери, кого заблокировать',
+  unblock_select: 'Выбери, кого разблокировать',
+  trust_add_select: 'Выбери, кому дать модератора',
+  trust_del_select: 'Выбери, у кого убрать модератора',
 };
 
 export const regionConfig = [
@@ -96,6 +96,7 @@ export const CONFIG = {
   BTN_TRUST_ADD: 'channel_add_trusted',
   BTN_TRUST_REM: 'channel_rem_trusted',
   BTN_TRANSFER: 'channel_transfer_rights',
+  BTN_CLAIM: 'channel_claim_rights',
 
   MODAL_RENAME: 'modal_channel_rename',
   MODAL_SET_LIMIT: 'modal_channel_set_limit',
