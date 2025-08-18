@@ -5,21 +5,27 @@ import {
   ModalSubmitInteraction,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import type { Interaction, UserSelectMenuInteraction } from 'discord.js';
-import { CONFIG } from 'src/common/constants';
+import type { UserSelectMenuInteraction } from 'discord.js';
+import { CONFIG, GUILD } from 'src/common/constants';
 import { PrivacyInteraction } from '../interactions/privacy.interaction';
 import { LimitInteraction } from '../interactions/limit.interaction';
 import { InviteInteraction } from '../interactions/invite.interaction';
 import { DeleteChannelInteraction } from '../interactions/delete.interaction';
 import { RegionInteraction } from '../interactions/region.interaction';
 import { ChannelRenameInteraction } from '../interactions/rename.interaction';
-import { InVoiceHandler } from 'src/common/Decorators/inVoiceHandler';
 import { TransferInteraction } from '../interactions/transfer.interaction';
 import { KickInteraction } from '../interactions/kick.interaction';
 import { BlockInteraction } from '../interactions/block.interaction';
 import { UnblockInteraction } from '../interactions/unblock.interaction';
 import { TrustInteraction } from '../interactions/trust.interaction';
 import { UntrustInteraction } from '../interactions/untrust.interaction';
+import { ClaimInteraction } from '../interactions/claim.interaction';
+
+type Interaction =
+  | ButtonInteraction
+  | ModalSubmitInteraction
+  | StringSelectMenuInteraction
+  | UserSelectMenuInteraction;
 
 @Injectable()
 export class RouteService {
@@ -54,6 +60,7 @@ export class RouteService {
     private readonly unblock: UnblockInteraction,
     private readonly trustI: TrustInteraction,
     private readonly untrustI: UntrustInteraction,
+    private readonly claimI: ClaimInteraction,
   ) {
     this.buttonHandlerMap = {
       [CONFIG.BTN_PRIVACY]: (i) => this.privacyI.onButtonInteract(i),
@@ -68,6 +75,7 @@ export class RouteService {
       [CONFIG.BTN_TRUST_ADD]: (i) => this.trustI.onButtonInteract(i),
       [CONFIG.BTN_TRUST_REM]: (i) => this.untrustI.onButtonInteract(i),
       [CONFIG.BTN_TRANSFER]: (i) => this.transferI.onButtonInteract(i),
+      [CONFIG.BTN_CLAIM]: (i) => this.claimI.onButtonInteract(i),
     };
 
     this.modalHandlerMap = {
@@ -90,9 +98,31 @@ export class RouteService {
     };
   }
 
-  @InVoiceHandler()
+  public async checkInVoice(interaction: Interaction) {
+    const member = interaction.guild?.members.cache.get(interaction.user.id);
+    const channel = member?.voice.channel;
+
+    if (
+      !channel ||
+      channel.parent?.name !== GUILD.CHS_CATEGORY_NAME ||
+      channel.name === GUILD.CH_GENERATOR_NAME
+    ) {
+      await interaction.reply({
+        content: 'Нужно быть в сгенерированном голосовом канале!',
+        flags: 'Ephemeral',
+      });
+      return false;
+    }
+
+    return true;
+  }
+
   @On('interactionCreate')
   async onInteract(interaction: Interaction) {
+    const inVoice: boolean = await this.checkInVoice(interaction);
+
+    if (!inVoice) return;
+
     if (interaction.isButton()) {
       return this.buttonHandlerMap[interaction.customId]?.(interaction);
     }
