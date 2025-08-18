@@ -23,126 +23,43 @@ export class VoiceInteraction {
   ) {}
 
   @On('voiceStateUpdate')
-  async handleVoiceJoin(_: VoiceState, newState: VoiceState) {
+  async handleJoin(_: VoiceState, newState: VoiceState) {
     const member = newState.member;
-    if (!member || !newState.channel) return;
-
     const channel = newState.channel;
-    const categoryName = GUILD.CHS_CATEGORY_NAME;
-    const generatorName = GUILD.CH_GENERATOR_NAME;
+    if (!member || !channel) return;
+
+    await this.ensureUser(member.id);
+
+    const { CHS_CATEGORY_NAME, CH_GENERATOR_NAME } = GUILD;
 
     if (
-      channel.name === generatorName &&
-      channel.parent?.name === categoryName
+      channel.name === CH_GENERATOR_NAME &&
+      channel.parent?.name === CHS_CATEGORY_NAME
     ) {
-      await this.createGeneratedChannel(member, channel.parent);
+      await this.createPersonalChannel(member, channel.parent);
       return;
     }
 
     if (
-      channel.parent?.name === categoryName &&
-      channel.name !== generatorName
+      channel.parent?.name === CHS_CATEGORY_NAME &&
+      channel.name !== CH_GENERATOR_NAME
     ) {
-      await this.handleTrustedAndBlocked(member, channel);
+      await this.applyAccessRules(member, channel);
     }
-  }
-
-  private async createGeneratedChannel(
-    member: GuildMember,
-    category: CategoryChannel,
-  ) {
-    let user = await this.userRepository.findOne({
-      where: { userId: member.id },
-      relations: { blockedUsers: true, trustedUsers: true },
-    });
-    if (!user) {
-      user = await this.userRepository.save({ userId: member.id });
-    }
-
-    const existingIndexes = await this.channelRepository.find({
-      select: { index: true },
-    });
-    const used = existingIndexes
-      .map((el) => parseInt(el.index, 10))
-      .sort((a, b) => a - b);
-
-    let nextNumber = 1;
-    for (const num of used) {
-      if (num === nextNumber) nextNumber++;
-      else break;
-    }
-
-    const name = `Канал [#${nextNumber}]`;
-    const createdChannel = await category.guild.channels.create({
-      name,
-      parent: category.id,
-      type: ChannelType.GuildVoice,
-      bitrate: 96000,
-      rtcRegion: 'india',
-    });
-
-    try {
-      await member.voice.setChannel(createdChannel);
-      const existingChannel = await this.channelRepository.findOne({
-        where: { ownerId: user.userId },
-      });
-
-      if (existingChannel) {
-        await this.channelRepository.update(existingChannel, {
-          owner: null,
-        });
-      }
-
-      await this.channelRepository.save({
-        channelId: createdChannel.id,
-        owner: user,
-        index: nextNumber.toString(),
-        name,
-      });
-    } catch {
-      console.log('Ты уже владелец какого-то канала');
-      await createdChannel.delete().catch(() => {});
-    }
-  }
-
-  private async handleTrustedAndBlocked(
-    member: GuildMember,
-    channel: VoiceBasedChannel,
-  ) {
-    const channelData = await this.channelRepository.findOne({
-      where: { channelId: channel.id },
-      relations: { owner: { blockedUsers: true, trustedUsers: true } },
-    });
-
-    if (!channelData?.owner) return;
-
-    const isBlocked = channelData.owner.blockedUsers.some(
-      (b) => b.blockedId === member.id,
-    );
-    if (isBlocked) {
-      await member.voice.disconnect().catch(() => {});
-      return;
-    }
-  }
-
-  @On('channelDelete')
-  async handleChannelDelete(channel: VoiceBasedChannel) {
-    if (channel.parent?.name !== GUILD.CHS_CATEGORY_NAME) return;
-    await this.channelRepository.delete({ channelId: channel.id });
   }
 
   @On('voiceStateUpdate')
   async handleLeave(oldState: VoiceState, newState: VoiceState) {
-    if (!oldState.channel) return;
-    if (newState.channel?.id === oldState.channel.id) return;
-
     const oldChannel = oldState.channel;
+    if (!oldChannel) return;
+    if (newState.channel?.id === oldChannel.id) return;
 
-    if (oldChannel.parent?.name !== GUILD.CHS_CATEGORY_NAME) return;
-    if (oldChannel.name === GUILD.CH_GENERATOR_NAME) return;
+    const { CHS_CATEGORY_NAME, CH_GENERATOR_NAME } = GUILD;
+    if (oldChannel.parent?.name !== CHS_CATEGORY_NAME) return;
+    if (oldChannel.name === CH_GENERATOR_NAME) return;
     if (oldChannel.type !== ChannelType.GuildVoice) return;
 
-    const channel = await this.channelRepository.findOne({
+    const channelData = await this.channelRepository.findOne({
       where: { channelId: oldChannel.id },
       relations: { owner: true },
     });
@@ -153,14 +70,100 @@ export class VoiceInteraction {
     }
 
     if (
-      channel &&
-      channel.owner &&
-      oldState.member?.id === channel.owner.userId
+      channelData?.owner &&
+      oldState.member?.id === channelData.owner.userId
     ) {
       await this.channelRepository.update(
         { channelId: oldChannel.id },
         { owner: null, ownerId: null },
       );
+    }
+  }
+
+  @On('channelDelete')
+  async handleChannelDelete(channel: VoiceBasedChannel) {
+    if (channel.parent?.name !== GUILD.CHS_CATEGORY_NAME) return;
+    await this.channelRepository.delete({ channelId: channel.id });
+  }
+
+  private async ensureUser(userId: string): Promise<User> {
+    let user = await this.userRepository.findOne({
+      where: { userId },
+      relations: { blockedUsers: true, trustedUsers: true },
+    });
+
+    if (!user) {
+      user = await this.userRepository.save({ userId });
+    }
+
+    return user;
+  }
+
+  private async applyAccessRules(
+    member: GuildMember,
+    channel: VoiceBasedChannel,
+  ) {
+    const channelData = await this.channelRepository.findOne({
+      where: { channelId: channel.id },
+      relations: { owner: { blockedUsers: true } },
+    });
+
+    if (!channelData?.owner) return;
+
+    const isBlocked = channelData.owner.blockedUsers.some(
+      (b) => b.blockedId === member.id,
+    );
+    if (isBlocked) {
+      await member.voice.disconnect().catch(() => {});
+    }
+  }
+
+  private async createPersonalChannel(
+    member: GuildMember,
+    category: CategoryChannel,
+  ) {
+    const user = await this.ensureUser(member.id);
+
+    const indexes = await this.channelRepository.find({
+      select: { index: true },
+    });
+    const used = indexes
+      .map((el) => parseInt(el.index, 10))
+      .filter((num) => !isNaN(num))
+      .sort((a, b) => a - b);
+
+    let nextNumber = 1;
+    for (const num of used) {
+      if (num === nextNumber) nextNumber++;
+      else break;
+    }
+
+    const name = `Канал [#${nextNumber}]`;
+
+    const created = await category.guild.channels.create({
+      name,
+      parent: category.id,
+      type: ChannelType.GuildVoice,
+      bitrate: 96000,
+      rtcRegion: 'india',
+    });
+
+    try {
+      await member.voice.setChannel(created);
+
+      await this.channelRepository.update(
+        { ownerId: user.userId },
+        { owner: null },
+      );
+
+      await this.channelRepository.save({
+        channelId: created.id,
+        owner: user,
+        index: nextNumber.toString(),
+        name,
+      });
+    } catch {
+      await created.delete().catch(() => {});
     }
   }
 }
