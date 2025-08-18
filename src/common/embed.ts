@@ -12,7 +12,7 @@ const embed = new EmbedBuilder()
   .setColor(0xffb900)
   .setDescription('Используйте кнопки ниже, чтобы управлять голосовым каналом.')
   .setImage(
-    'https://cdn.discordapp.com/attachments/1148739831594242211/1406310818093731880/-1.png?ex=68a20083&is=68a0af03&hm=c5a9163e73005ce3c1e58bbe0295622b97ffb235561ab63f79aef172c0c9cb43&',
+    'https://cdn.discordapp.com/attachments/504346744830820352/1407019598066221248/nepostavishprozrachnost_mami_net.png?ex=68a4949d&is=68a3431d&hm=aec7fcd5e1e27a20d3c4a30d23be5119c186e537741e2f01fb533c18aef4c0ee&',
   );
 
 const rows = [
@@ -32,8 +32,9 @@ const rows = [
     [CONFIG.BTN_TRUST_ADD, ICONS.TRUSTED_ADD, ButtonStyle.Secondary],
     [CONFIG.BTN_TRUST_REM, ICONS.TRUSTED_REMOVE, ButtonStyle.Secondary],
     [CONFIG.BTN_TRANSFER, ICONS.TRANSFER, ButtonStyle.Secondary],
-    [CONFIG.BTN_DELETE, ICONS.DELETE, ButtonStyle.Secondary],
+    [CONFIG.BTN_CLAIM, ICONS.CLAIM, ButtonStyle.Secondary],
   ]),
+  makeRow([[CONFIG.BTN_DELETE, ICONS.DELETE, ButtonStyle.Secondary]]),
 ];
 
 export const sendEmbedInterface = async (
