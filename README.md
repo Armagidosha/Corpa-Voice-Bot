@@ -21,46 +21,71 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+---
 
-Bot for discord guild Corpa.
-Allows to generate and interact voice channels
+## 📖 Description
 
+This is a **Discord bot** for the **Corpa guild**, written in **TypeScript** with **NestJS** and **Discord.js**.  
+
+### ✨ Features
+- 🔧** Channel generator** - automatically creates voice channel and you become owner
+- 🎛 **Channel control panel** – manage generated channels with ease.
+---
 ## Project setup
 
+install yarn globally (if not installed)
 ```bash
 $ npm install -g yarn
 ```
-
-```
-$ yarn install
-```
-
-```.env
- DS_TOKEN=//!
- GUILD_ID=//!
- PORT=//? default: 5050
-```
-
+install project dependencies
 ```bash
-# development
-$ yarn start
-
-# watch mode
-$ yarn start:dev
-
-# production mode
-$ yarn start:prod
+yarn install
+```
+Create a .env file in the project root with the following variables:
+```.env
+ DS_TOKEN=your_discord_bot_token
+ GUILD_ID=your_discord_guild_id
+ PORT=5050 # default
 ```
 
+## 🚀 Running the App
+
+Follow the steps below to run the project in **production** or **development** mode.
+
+---
+
+### 🏭 Production Mode
+
+1. **Build the project:**
+```bash
+yarn build
+```
+2. **Run the production server:**
+```bash
+yarn start:prod
+```
+
+### 🔧 Development Mode
+**Run the app in watch mode (auto-reload on changes)**
+```bash
+yarn start:dev
+```
+
+## 🛠 Tech Stack
+
+### Frameworks & Libraries
+- **[NestJS](https://nestjs.com/)** – server-side framework for scalable applications
+- **[Discord.js](https://discord.js.org/)** – Discord API wrapper
+- **[@discord-nestjs/core](https://www.npmjs.com/package/@discord-nestjs/core)** – NestJS integration for Discord
+- **[@discord-nestjs/common](https://www.npmjs.com/package/@discord-nestjs/common)** – common utilities for Discord-NestJS
+- **[TypeORM](https://typeorm.io/)** – ORM for database interactions
+- **[better-sqlite3](https://www.npmjs.com/package/better-sqlite3)** – SQLite client
+- **[nest-winston](https://www.npmjs.com/package/nest-winston)** + **[winston](https://www.npmjs.com/package/winston)** – logging
+
+### Core & Utilities
+- **TypeScript** – type-safe JavaScript
+- **nestjs-dynamic-providers** – dynamic dependency injection support
+
+
+---
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
