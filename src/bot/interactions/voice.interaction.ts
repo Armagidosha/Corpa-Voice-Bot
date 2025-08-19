@@ -5,6 +5,7 @@ import {
   CategoryChannel,
   ChannelType,
   GuildMember,
+  PermissionFlagsBits,
   VoiceState,
 } from 'discord.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -140,12 +141,24 @@ export class VoiceInteraction {
 
     const name = `Канал [#${nextNumber}]`;
 
+    const permissions = [
+      ...user.blockedUsers.map((blocked) => ({
+        id: blocked.blockedId,
+        deny: [PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel],
+      })),
+      ...user.trustedUsers.map((trusted) => ({
+        id: trusted.trustedId,
+        allow: [PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel],
+      })),
+    ];
+
     const created = await category.guild.channels.create({
       name,
       parent: category.id,
       type: ChannelType.GuildVoice,
       bitrate: 96000,
       rtcRegion: 'india',
+      permissionOverwrites: permissions,
     });
 
     try {
