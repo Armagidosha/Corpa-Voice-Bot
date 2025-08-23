@@ -23,12 +23,12 @@
 
 ---
 
-## 📖 Description
+## Description
 
 This is a **Discord bot** for the **Corpa guild**, written in **TypeScript** with **NestJS** and **Discord.js**.  
 
-### ✨ Features
-- 🔧** Channel generator** - automatically creates voice channel and you become owner
+### Features
+- 🔧**Channel generator** - automatically creates voice channel and you become owner
 - 🎛 **Channel control panel** – manage generated channels with ease.
 ---
 ## Project setup
@@ -48,7 +48,7 @@ Create a .env file in the project root with the following variables:
  PORT=5050 # default
 ```
 
-## 🚀 Running the App
+## Running the App
 
 Follow the steps below to run the project in **production** or **development** mode.
 
@@ -65,10 +65,18 @@ yarn build
 yarn start:prod
 ```
 
-### 🔧 Development Mode
+### Development Mode
 **Run the app in watch mode (auto-reload on changes)**
 ```bash
 yarn start:dev
+```
+
+## Available commands
+```discord
+  /setup - will generate category, interface channel and voice generator
+```
+```discord
+  /interface - creates an interface to interact with generated voice channel
 ```
 
 ## 🛠 Tech Stack
