@@ -54,7 +54,7 @@ Follow the steps below to run the project in **production** or **development** m
 
 ---
 
-### 🏭 Production Mode
+### Production Mode
 
 1. **Build the project:**
 ```bash
@@ -79,7 +79,7 @@ yarn start:dev
   /interface - creates an interface to interact with generated voice channel
 ```
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frameworks & Libraries
 - **[NestJS](https://nestjs.com/)** – server-side framework for scalable applications
