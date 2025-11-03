@@ -157,7 +157,6 @@ export class VoiceInteraction {
       parent: category.id,
       type: ChannelType.GuildVoice,
       bitrate: 96000,
-      rtcRegion: 'india',
       permissionOverwrites: permissions,
     });
 
