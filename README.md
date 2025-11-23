@@ -23,6 +23,15 @@
 
 ---
 
+## Requirements
+```
+  node version  >= 22.18.0
+
+```
+  install yarn globally (if not installed)
+```
+  npm install -g yarn
+```
 ## Description
 
 This is a **Discord bot** for the **Corpa guild**, written in **TypeScript** with **NestJS** and **Discord.js**.  
@@ -32,11 +41,6 @@ This is a **Discord bot** for the **Corpa guild**, written in **TypeScript** wit
 - 🎛 **Channel control panel** – manage generated channels with ease.
 ---
 ## Project setup
-
-install yarn globally (if not installed)
-```bash
-$ npm install -g yarn
-```
 install project dependencies
 ```bash
 yarn install
