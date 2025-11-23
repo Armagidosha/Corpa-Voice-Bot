@@ -39,20 +39,29 @@ export class SetupCommand {
       channel?.parent instanceof CategoryChannel ? channel.parent : null;
 
     let category = parentCategory;
-    if (!category) {
+
+    if (!category || category.name !== GUILD.CHS_CATEGORY_NAME) {
       category = await guild.channels.create({
         name: GUILD.CHS_CATEGORY_NAME,
         type: ChannelType.GuildCategory,
       });
+    }
 
-      const channel = await guild.channels.create({
+    const targetName = GUILD.CH_INTERFACE_NAME.replace(' ', '-').toLowerCase();
+
+    const existing = guild.channels.cache.find(
+      (ch) => ch.parentId === category.id && ch.name === targetName,
+    );
+
+    if (!existing) {
+      const interfaceChannel = await guild.channels.create({
         name: GUILD.CH_INTERFACE_NAME,
         type: ChannelType.GuildText,
         parent: category,
         position: 1,
       });
 
-      await sendEmbedInterface(channel);
+      await sendEmbedInterface(interfaceChannel);
     }
 
     const existingGenerator = guild.channels.cache.find(
