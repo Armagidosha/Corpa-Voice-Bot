@@ -26,7 +26,6 @@
 ## Requirements
 ```
   node version  >= 22.18.0
-
 ```
   install yarn globally (if not installed)
 ```
