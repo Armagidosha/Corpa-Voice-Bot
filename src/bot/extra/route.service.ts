@@ -119,7 +119,7 @@ export class RouteService {
 
   @On('interactionCreate')
   async onInteract(interaction: Interaction) {
-    if (interaction.isCommand) return;
+    if (interaction.isCommand()) return;
 
     const inVoice: boolean = await this.checkInVoice(interaction);
 

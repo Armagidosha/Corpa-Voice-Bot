@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
+  GuildMember,
   ModalBuilder,
   ModalSubmitInteraction,
   TextInputBuilder,
@@ -9,7 +10,6 @@ import {
 } from 'discord.js';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { CheckRightsService } from '../extra/checkRights.service';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 
 const input = new ActionRowBuilder<TextInputBuilder>().addComponents(
   new TextInputBuilder({
@@ -27,10 +27,7 @@ const modal = new ModalBuilder({
 
 @Injectable()
 export class LimitInteraction {
-  constructor(
-    private readonly checkRightsService: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
-  ) {}
+  constructor(private readonly checkRightsService: CheckRightsService) {}
   async onButtonInteract(interaction: ButtonInteraction) {
     const { isOwner, isTrusted } =
       await this.checkRightsService.check(interaction);
@@ -48,12 +45,11 @@ export class LimitInteraction {
 
   async onModalInteract(interaction: ModalSubmitInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-    const { fields, voiceChannel } =
-      await this.interactionExtractor.extract(interaction);
 
-    const newLimit = parseInt(fields[0], 10);
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const field = interaction.fields.getTextInputValue(CONFIG.INP_SET_LIMIT);
 
-    console.log(isNaN(newLimit) || newLimit < 0 || newLimit > 99);
+    const newLimit = Number(field);
 
     if (isNaN(newLimit) || newLimit < 0 || newLimit > 99) {
       await interaction.editReply(MESSAGES.INVALID_CHANNEL_LIMIT);

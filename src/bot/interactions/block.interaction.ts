@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
+  GuildMember,
   UserSelectMenuBuilder,
   UserSelectMenuInteraction,
 } from 'discord.js';
@@ -10,14 +11,12 @@ import { Repository } from 'typeorm';
 import { CheckRightsService } from '../extra/checkRights.service';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { BlockedUser } from '../entities/blockedUser.entity';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { TrustedUser } from '../entities/trustedUser.entity';
 
 @Injectable()
 export class BlockInteraction {
   constructor(
     private readonly checkRightsService: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
     @InjectRepository(BlockedUser)
     private readonly blockedUserRepository: Repository<BlockedUser>,
     @InjectRepository(TrustedUser)
@@ -49,12 +48,15 @@ export class BlockInteraction {
 
   async onInputInteract(interaction: UserSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-    const { values, userId, guild, voiceChannel } =
-      await this.interactionExtractor.extract(interaction);
+
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const values = interaction.values;
+    const userId = interaction.user.id;
+    const guild = interaction.guild;
 
     const selectedUserId = values[0];
-    const user = await guild.members.fetch(selectedUserId);
-    const isBot = user.user.bot;
+    const targetUser = await guild.members.fetch(selectedUserId);
+    const isBot = targetUser.user.bot;
 
     if (selectedUserId === userId || isBot) {
       await interaction.editReply(MESSAGES.SELF_OR_BOT_SELECTED);
@@ -84,7 +86,7 @@ export class BlockInteraction {
       ownerId: userId,
     });
 
-    await voiceChannel.permissionOverwrites.edit(user, {
+    await voiceChannel.permissionOverwrites.edit(targetUser, {
       Connect: false,
       ViewChannel: false,
     });

@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
+  GuildMember,
   UserSelectMenuBuilder,
   UserSelectMenuInteraction,
 } from 'discord.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CheckRightsService } from '../extra/checkRights.service';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { TrustedUser } from '../entities/trustedUser.entity';
 import { BlockedUser } from '../entities/blockedUser.entity';
@@ -17,7 +17,6 @@ import { BlockedUser } from '../entities/blockedUser.entity';
 export class TrustInteraction {
   constructor(
     private readonly checkRightsService: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
     @InjectRepository(TrustedUser)
     private readonly trustedUserRepository: Repository<TrustedUser>,
     @InjectRepository(BlockedUser)
@@ -49,12 +48,15 @@ export class TrustInteraction {
 
   async onInputInteract(interaction: UserSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-    const { values, userId, guild, voiceChannel } =
-      await this.interactionExtractor.extract(interaction);
+
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const userId = interaction.user.id;
+    const values = interaction.values;
+    const guild = interaction.guild;
 
     const selectedUserId = values[0];
-    const user = await guild.members.fetch(selectedUserId);
-    const isBot = user.user.bot;
+    const targetUser = await guild.members.fetch(selectedUserId);
+    const isBot = targetUser.user.bot;
 
     if (selectedUserId === userId || isBot) {
       await interaction.editReply(MESSAGES.SELF_OR_BOT_SELECTED);
@@ -87,7 +89,7 @@ export class TrustInteraction {
       ownerId: userId,
     });
 
-    await voiceChannel.permissionOverwrites.edit(user, {
+    await voiceChannel.permissionOverwrites.edit(targetUser, {
       Connect: true,
       ViewChannel: true,
     });

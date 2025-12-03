@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ButtonInteraction, PermissionsBitField } from 'discord.js';
+import {
+  ButtonInteraction,
+  GuildMember,
+  PermissionsBitField,
+} from 'discord.js';
 import { CheckRightsService } from '../extra/checkRights.service';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { MESSAGES } from 'src/common/constants';
 
 @Injectable()
 export class PrivacyInteraction {
-  constructor(
-    private readonly checkRights: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
-  ) {}
+  constructor(private readonly checkRights: CheckRightsService) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
@@ -21,8 +21,8 @@ export class PrivacyInteraction {
       return;
     }
 
-    const { voiceChannel, guild } =
-      await this.interactionExtractor.extract(interaction);
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const guild = interaction.guild;
 
     const everyone = guild.roles.everyone;
     const currentPerms = voiceChannel.permissionsFor(everyone);

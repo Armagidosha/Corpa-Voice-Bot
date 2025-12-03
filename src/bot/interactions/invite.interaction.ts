@@ -2,20 +2,16 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
-  PermissionsBitField,
+  GuildMember,
   UserSelectMenuBuilder,
   UserSelectMenuInteraction,
 } from 'discord.js';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { CheckRightsService } from '../extra/checkRights.service';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 
 @Injectable()
 export class InviteInteraction {
-  constructor(
-    private readonly checkRightsService: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
-  ) {}
+  constructor(private readonly checkRightsService: CheckRightsService) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
@@ -25,20 +21,6 @@ export class InviteInteraction {
 
     if (!isOwner && !isTrusted) {
       await interaction.editReply(MESSAGES.NO_RIGHTS);
-      return;
-    }
-
-    const { voiceChannel, guild } =
-      await this.interactionExtractor.extract(interaction);
-
-    const everyone = guild.roles.everyone;
-
-    if (
-      voiceChannel
-        .permissionsFor(everyone)
-        .has(PermissionsBitField.Flags.Connect)
-    ) {
-      await interaction.editReply(MESSAGES.CHANNEL_SHOULD_BE_PRIVATE);
       return;
     }
 
@@ -57,37 +39,40 @@ export class InviteInteraction {
   async onInputInteract(interaction: UserSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
-    const { voiceChannel, user, userId, guild, values } =
-      await this.interactionExtractor.extract(interaction);
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const user = interaction.user;
+    const userId = user.id;
+    const guild = interaction.guild;
+    const values = interaction.values;
 
     const selectedUserId = values[0];
-    const invitedUser = await guild.members.fetch(selectedUserId);
-    const isBot = user.bot;
+    const targetUser = await guild.members.fetch(selectedUserId);
+    const isBot = targetUser.user.bot;
 
-    if (invitedUser.id === userId || isBot) {
+    if (targetUser.id === userId || isBot) {
       await interaction.editReply(MESSAGES.SELF_OR_BOT_SELECTED);
       return;
     }
 
-    const invitedUserChannel = invitedUser.voice.channel;
+    const invitedUserChannel = targetUser.voice.channel;
 
     if (invitedUserChannel && invitedUserChannel.id === voiceChannel.id) {
       await interaction.editReply(MESSAGES.CANT_INVITE_USER_IN_CHANNEL);
       return;
     }
 
-    let reply = `<@${invitedUser.id}> теперь может посещать твой канал.`;
+    let reply = `<@${targetUser.id}> был приглашен в твой голосовой канал.`;
 
-    await voiceChannel.permissionOverwrites.edit(invitedUser, {
+    await voiceChannel.permissionOverwrites.edit(targetUser, {
       Connect: true,
     });
 
     try {
-      await invitedUser.send(
+      await targetUser.send(
         `<@${userId}> пригласили тебя в голосовой канал <#${voiceChannel.id}>.`,
       );
     } catch {
-      reply += 'Но он не получил приглашение в личных сообщениях.';
+      reply += ' Но он не получил приглашение в личных сообщениях.';
     }
     await interaction.editReply(reply);
   }

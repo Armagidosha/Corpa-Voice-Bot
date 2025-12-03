@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ActionRowBuilder,
   ButtonInteraction,
+  GuildMember,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
@@ -9,14 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CONFIG, MESSAGES } from 'src/common/constants';
 import { CheckRightsService } from '../extra/checkRights.service';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { Channel } from '../entities/channel.entity';
 
 @Injectable()
 export class KickInteraction {
   constructor(
     private readonly checkRightsService: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
   ) {}
@@ -32,8 +31,8 @@ export class KickInteraction {
       return;
     }
 
-    const { voiceChannel, userId } =
-      await this.interactionExtractor.extract(interaction);
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const userId = interaction.user.id;
 
     const selectOptions = voiceChannel.members
       .filter((memb) => !memb.user.bot)
@@ -61,8 +60,9 @@ export class KickInteraction {
   async onInputInteract(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
-    const { guild, voiceChannel, values } =
-      await this.interactionExtractor.extract(interaction);
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const guild = interaction.guild;
+    const values = interaction.values;
 
     const members = guild.members;
 

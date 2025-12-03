@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ButtonInteraction } from 'discord.js';
+import { ButtonInteraction, GuildMember } from 'discord.js';
 import { Channel } from '../entities/channel.entity';
 import { Repository } from 'typeorm';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 import { MESSAGES } from 'src/common/constants';
 
 @Injectable()
@@ -11,13 +10,14 @@ export class ClaimInteraction {
   constructor(
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
-    private readonly interactionExtractor: InteractionExtractorService,
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
-    const { voiceChannel, userId } =
-      await this.interactionExtractor.extract(interaction);
+
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const userId = interaction.user.id;
+
     const channelData = await this.channelRepository.findOne({
       where: { channelId: voiceChannel.id },
     });

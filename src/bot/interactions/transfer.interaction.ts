@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   ActionRowBuilder,
   ButtonInteraction,
+  GuildMember,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from 'discord.js';
@@ -10,7 +11,6 @@ import { Repository } from 'typeorm';
 import { CONFIG, INP_CONTENT, MESSAGES } from 'src/common/constants';
 import { Channel } from 'src/bot/entities/channel.entity';
 import { CheckRightsService } from '../extra/checkRights.service';
-import { InteractionExtractorService } from '../extra/interactionExtractor.service';
 
 @Injectable()
 export class TransferInteraction {
@@ -18,7 +18,6 @@ export class TransferInteraction {
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
     private readonly checkRights: CheckRightsService,
-    private readonly interactionExtractor: InteractionExtractorService,
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
@@ -59,8 +58,10 @@ export class TransferInteraction {
   async onInputInteraction(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
-    const { values, voiceChannel, userId, guild } =
-      await this.interactionExtractor.extract(interaction);
+    const voiceChannel = (interaction.member as GuildMember).voice.channel;
+    const userId = interaction.user.id;
+    const values = interaction.values;
+    const guild = interaction.guild;
 
     const newOwnerId = values[0];
     const newOwner = await guild.members.fetch(newOwnerId);
