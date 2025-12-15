@@ -76,9 +76,10 @@ export class UntrustInteraction {
     const guild = interaction.guild;
 
     const selectedUserId = values[0];
+    const ownerId = interaction.user.id;
 
     const trustedUserData = await this.trustedUserRepository.findOne({
-      where: { trustedId: selectedUserId },
+      where: { trustedId: selectedUserId, ownerId: ownerId },
     });
 
     if (!trustedUserData) {
