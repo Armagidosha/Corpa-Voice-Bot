@@ -39,6 +39,14 @@ export class InviteInteraction {
   async onInputInteract(interaction: UserSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
+    const { isOwner, isTrusted } =
+      await this.checkRightsService.check(interaction);
+
+    if (!isOwner && !isTrusted) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
     const voiceChannel = (interaction.member as GuildMember).voice.channel;
     const user = interaction.user;
     const userId = user.id;
@@ -65,6 +73,7 @@ export class InviteInteraction {
 
     await voiceChannel.permissionOverwrites.edit(targetUser, {
       Connect: true,
+      ViewChannel: true,
     });
 
     try {

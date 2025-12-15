@@ -64,6 +64,13 @@ export class UnblockInteraction {
   async onInputInteract(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
+    const { isOwner } = await this.checkRightsService.check(interaction);
+
+    if (!isOwner) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
     const voiceChannel = (interaction.member as GuildMember).voice.channel;
     const values = interaction.values;
     const guild = interaction.guild;

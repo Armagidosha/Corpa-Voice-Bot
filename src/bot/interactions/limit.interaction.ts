@@ -46,6 +46,14 @@ export class LimitInteraction {
   async onModalInteract(interaction: ModalSubmitInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
+    const { isOwner, isTrusted } =
+      await this.checkRightsService.check(interaction);
+
+    if (!isOwner && !isTrusted) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
     const voiceChannel = (interaction.member as GuildMember).voice.channel;
     const field = interaction.fields.getTextInputValue(CONFIG.INP_SET_LIMIT);
 

@@ -49,6 +49,13 @@ export class TrustInteraction {
   async onInputInteract(interaction: UserSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
+    const { isOwner } = await this.checkRightsService.check(interaction);
+
+    if (!isOwner) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
     const voiceChannel = (interaction.member as GuildMember).voice.channel;
     const userId = interaction.user.id;
     const values = interaction.values;

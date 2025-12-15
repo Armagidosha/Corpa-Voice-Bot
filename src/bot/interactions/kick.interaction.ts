@@ -60,6 +60,14 @@ export class KickInteraction {
   async onInputInteract(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
 
+    const { isOwner, isTrusted } =
+      await this.checkRightsService.check(interaction);
+
+    if (!isOwner && !isTrusted) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
+
     const voiceChannel = (interaction.member as GuildMember).voice.channel;
     const guild = interaction.guild;
     const values = interaction.values;

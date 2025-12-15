@@ -17,7 +17,7 @@ export class TransferInteraction {
   constructor(
     @InjectRepository(Channel)
     private readonly channelRepository: Repository<Channel>,
-    private readonly checkRights: CheckRightsService,
+    private readonly checkRightsService: CheckRightsService,
   ) {}
 
   async onButtonInteract(interaction: ButtonInteraction) {
@@ -26,7 +26,7 @@ export class TransferInteraction {
     const member = interaction.guild.members.cache.get(interaction.user.id);
     const channelMembers = member.voice.channel.members;
 
-    const { isOwner } = await this.checkRights.check(interaction);
+    const { isOwner } = await this.checkRightsService.check(interaction);
 
     if (!isOwner) {
       await interaction.editReply(MESSAGES.NO_RIGHTS);
@@ -57,6 +57,13 @@ export class TransferInteraction {
 
   async onInputInteraction(interaction: StringSelectMenuInteraction) {
     await interaction.deferReply({ flags: 'Ephemeral' });
+
+    const { isOwner } = await this.checkRightsService.check(interaction);
+
+    if (!isOwner) {
+      await interaction.editReply(MESSAGES.NO_RIGHTS);
+      return;
+    }
 
     const voiceChannel = (interaction.member as GuildMember).voice.channel;
     const userId = interaction.user.id;
