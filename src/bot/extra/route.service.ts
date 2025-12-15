@@ -31,20 +31,20 @@ type Interaction =
 export class RouteService {
   private readonly buttonHandlerMap: Record<
     string,
-    (i: ButtonInteraction) => Promise<void> | void
+    (i: ButtonInteraction) => Promise<unknown> | void
   >;
   private readonly modalHandlerMap: Record<
     string,
-    (i: ModalSubmitInteraction) => Promise<void> | void
+    (i: ModalSubmitInteraction) => Promise<unknown> | void
   >;
   private readonly inputHandlerMap: Record<
     string,
-    (i: StringSelectMenuInteraction) => Promise<void> | void
+    (i: StringSelectMenuInteraction) => Promise<unknown> | void
   >;
 
   private readonly selectHandlerMap: Record<
     string,
-    (i: UserSelectMenuInteraction) => Promise<void> | void
+    (i: UserSelectMenuInteraction) => Promise<unknown> | void
   >;
 
   constructor(
@@ -64,6 +64,10 @@ export class RouteService {
   ) {
     this.buttonHandlerMap = {
       [CONFIG.BTN_PRIVACY]: (i) => this.privacyI.onButtonInteract(i),
+      [CONFIG.BTN_PRIVACY_HIDDEN]: (i) =>
+        this.privacyI.onActionButtonInteract(i),
+      [CONFIG.BTN_PRIVACY_VISIBLE]: (i) =>
+        this.privacyI.onActionButtonInteract(i),
       [CONFIG.BTN_RENAME]: (i) => this.renameI.onButtonInteract(i),
       [CONFIG.BTN_LIMIT]: (i) => this.limitI.onButtonInteract(i),
       [CONFIG.BTN_REGION]: (i) => this.regionI.onButtonInteract(i),

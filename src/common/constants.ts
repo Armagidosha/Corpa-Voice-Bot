@@ -85,6 +85,8 @@ export const regionConfig = [
 
 export const CONFIG = {
   BTN_PRIVACY: 'channel_toggle_privacy',
+  BTN_PRIVACY_HIDDEN: 'channel_privacy_hidden',
+  BTN_PRIVACY_VISIBLE: 'channel_privacy_visible',
   BTN_RENAME: 'channel_rename',
   BTN_LIMIT: 'channel_set_limit',
   BTN_REGION: 'channel_set_region',
