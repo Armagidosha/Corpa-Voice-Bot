@@ -10,9 +10,10 @@ import {
 } from 'discord.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GUILD } from 'src/common/constants';
+import { emojis, GUILD } from 'src/common/constants';
 import { Channel } from 'src/bot/entities/channel.entity';
 import { User } from '../entities/user.entity';
+import { randomizeEmoji } from 'src/common/utils';
 
 @Injectable()
 export class VoiceInteraction {
@@ -125,21 +126,26 @@ export class VoiceInteraction {
   ) {
     const user = await this.ensureUser(member.id);
 
-    const indexes = await this.channelRepository.find({
-      select: { index: true },
-    });
-    const used = indexes
-      .map((el) => parseInt(el.index, 10))
-      .filter((num) => !isNaN(num))
-      .sort((a, b) => a - b);
+    // Uncomment this if you need name with increment
+    // const indexes = await this.channelRepository.find({
+    //   select: { index: true },
+    // });
+    // const used = indexes
+    //   .map((el) => parseInt(el.index, 10))
+    //   .filter((num) => !isNaN(num))
+    //   .sort((a, b) => a - b);
 
-    let nextNumber = 1;
-    for (const num of used) {
-      if (num === nextNumber) nextNumber++;
-      else break;
-    }
+    // let nextNumber = 1;
+    // for (const num of used) {
+    //   if (num === nextNumber) nextNumber++;
+    //   else break;
+    // }
 
-    const name = `Канал [#${nextNumber}]`;
+    // const name = `Канал [#${nextNumber}]`;
+
+    // Comment next line if you want name with increment
+    const emoji = randomizeEmoji(emojis);
+    const name = `Канал [${emoji}]`;
 
     const permissions = [
       ...user.blockedUsers.map((blocked) => ({
@@ -171,7 +177,7 @@ export class VoiceInteraction {
       await this.channelRepository.save({
         channelId: created.id,
         owner: user,
-        index: nextNumber.toString(),
+        index: emoji,
         name,
       });
     } catch {

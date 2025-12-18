@@ -88,9 +88,7 @@ export class PrivacyInteraction {
 
     await voiceChannel.permissionOverwrites.edit(everyone, {
       Connect: false,
-      ...(isHidden && {
-        ViewChannel: false,
-      }),
+      ViewChannel: isHidden ? false : undefined,
     });
 
     await interaction.editReply(

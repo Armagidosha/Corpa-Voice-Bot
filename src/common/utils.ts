@@ -11,3 +11,8 @@ export const makeRow = (
 
   return row;
 };
+
+export const randomizeEmoji = (emojiArr: string[]): string | null => {
+  if (emojiArr.length === 0) return null;
+  return emojiArr[Math.floor(Math.random() * emojiArr.length)];
+};
